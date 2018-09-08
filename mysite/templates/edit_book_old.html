@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑书籍</title>
+</head>
+<body>
+<h1>编辑书籍</h1>
+<form action="/edit_book/" method="post">
+    <input name="id" type="text" value="{{ edit_book_obj.id }}" style="display: none">
+    <p>
+        <label for="">
+            书名:
+            <input type="text" name="book_title" value="{{ edit_book_obj.title }}">
+        </label>
+        <span style="color: red">{{ error }}</span>
+    </p>
+    <p>
+        <select name="publisher" id="">
+            {% for publisher in publisher_list %}
+                {% if edit_book_obj.publisher.id == publisher.id %}
+                    <option selected value="{{ publisher.id }}">{{ publisher.name }}</option>
+                {% else %}
+                    <option value="{{ publisher.id }}">{{ publisher.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </p>
+    <input type="submit" value="提交">
+</form>
+</body>
+</html>

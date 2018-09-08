@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>编辑出版社</title>
+</head>
+<body>
+<h1>编辑出版社</h1>
+
+<form action="/edit_publisher/" method="post">
+    <p>
+        <input type="hidden" name="id" value="{{publisher.id}}">
+{#        <!--<input type="text" name="id" value="{{publisher.id}}" style="display:none">-->#}
+    </p>
+    <p>
+        <input type="text" name="publisher_name" value="{{publisher.name}}">
+{#        <span style="color:red">{{error}}</span>#}
+    </p>
+    <p>
+        <input type="submit" value="提交">
+    </p>
+    <p style="color:red">{{error_msg}}</p>
+</form>
+</body>
+</html>
