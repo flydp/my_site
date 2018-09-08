@@ -5,37 +5,11 @@ from django.shortcuts import redirect, render, HttpResponse
 from .models import UseInfo, Publisher, Book, Author
 from django.views import View
 from django.urls import reverse
-from utils import mypage,mypage_search
+from utils import mypage, mypage_search
 
 '''
  # CBV(class base view)和FBV(function base view)
 '''
-
-
-def test(request):
-    content = {
-        'name': '小哈',
-
-    }
-    return render(request, 'test.html', content)
-
-
-# 上传文件
-'''
-# 当文件小于2.5M时,django会将上传的文件的全部内容读入内存,但当文件很大时,会把上传文件写到临时文件中,
-# 然后存放系统临时文件夹中
-'''
-class UploadFile(View):
-    def post(self,request):
-        # 从请求的files中获取文件名,为页面中type=files类型input的name属性值
-        filename = request.FILES['upload_file'].name
-        # 在项目目录下新建一个文件
-        with open(filename,'wb') as f:
-            # 从上传的文件对象中一点一点的读
-            for i in request.FILES['upload_file'].chunks():
-                # 写入本地文件
-                f.write(i)
-        return HttpResponse('上传成功!')
 
 
 def login(request):
@@ -80,14 +54,14 @@ def add_publisher(request):
         if new_name:
             Publisher.objects.create(name=new_name)
             # return redirect('/publisher_list/')
-            redirect_url = reverse('pub_l')      # 利用反向解析
+            redirect_url = reverse('pub_l')  # 利用反向解析
             return redirect(redirect_url)
         else:
             error_msg = '出版社名字不能为空！'
     return render(request, 'add_publisher.html', {'error_msg': error_msg})
 
 
-def delete_publisher(request,del_id):
+def delete_publisher(request, del_id):
     # 删除指定的数据
     # 1. 从GET请求的参数里面拿到将要删除的数据的ID值
     # del_id = request.GET.get('id', None)
@@ -102,7 +76,7 @@ def delete_publisher(request,del_id):
         return HttpResponse('要删除的数据不存在')
 
 
-def edit_publisher(request,edit_id):
+def edit_publisher(request, edit_id):
     # edit_id = request.GET.get('id', None)
     if request.method == 'GET':
         if edit_id:
@@ -136,14 +110,15 @@ def book_search(request):
         book_obj = Book.objects.all()
         total_count = book_obj.count()
     url_prefix = '/book_search/'
-    my_page = mypage_search.Page(page_num,total_count,url_prefix,book_search)
+    my_page = mypage_search.Page(page_num, total_count, url_prefix, book_search)
     data_start = my_page.data_start
     data_end = my_page.data_end
     page_html = my_page.page_html()
     all_book = book_obj[data_start:data_end]
     # print(all_book)
 
-    return render(request, 'book_list.html', {'all_book': all_book,'page_html':page_html})
+    return render(request, 'book_list.html', {'all_book': all_book, 'page_html': page_html})
+
 
 # # 书的列表
 # def book_list(request):
@@ -152,18 +127,37 @@ def book_search(request):
 
 # 书的列表
 def book_list(request):
-    page_num = request.GET.get('page',1)
+    page_num = request.GET.get('page', 1)
 
     total_count = Book.objects.count()
     url_prefix = '/book_list/'
-    my_page = mypage.Page(page_num,total_count,url_prefix)
+    my_page = mypage.Page(page_num, total_count, url_prefix)
     data_start = my_page.data_start
     data_end = my_page.data_end
     page_html = my_page.page_html()
     all_book = Book.objects.all()[data_start:data_end]
     print(all_book)
 
-    return render(request, 'book_list.html', {'all_book': all_book,'page_html':page_html})
+    return render(request, 'book_list.html', {'all_book': all_book, 'page_html': page_html})
+
+
+def ad_book_ajax(request):
+    if request.method == 'POST':
+        new_title = request.POST.get('book_title')
+        new_publisher_id = request.POST.get('publisher')
+
+        # 用出版社对象创建
+        # publisher_obj = Publisher.objects.get(id=new_publisher_id)
+        # Book.objects.create(title=new_title, publisher=publisher_obj)
+
+        Book.objects.create(title=new_title, publisher_id=new_publisher_id)
+        return HttpResponse('添加成功')
+    ret = Publisher.objects.all()
+    option_list = []
+    for i in ret:
+        op = '<option value="{}">{}</option>'.format(i.id,i.name)
+        option_list.append(op)
+    return HttpResponse(option_list)
 
 # 添加书籍
 def add_book(request):
@@ -182,11 +176,15 @@ def add_book(request):
 
 
 # 删除书籍
-def delete_book(request,delete_id):
+def delete_book(request, delete_id):
     # delete_id = request.GET.get('id')
     Book.objects.get(id=delete_id).delete()
     return redirect(reverse('book_l'))
 
+def delete_aj_book(request):
+    del_id = request.POST.get('id')
+    Book.objects.get(id=del_id).delete()
+    return HttpResponse('删除成功!')
 
 # 编辑书籍
 def edit_book(request):
@@ -212,7 +210,7 @@ def edit_book(request):
 
 
 # 编辑书籍
-def edit_book1(request,edit_id):
+def edit_book1(request, edit_id):
     # edit_id = request.GET.get('id', None)
     publisher_list = Publisher.objects.all()
     if request.method == 'GET':
@@ -237,6 +235,7 @@ def edit_book1(request,edit_id):
             return render(request, 'edit_book.html',
                           {'publisher_list': publisher_list, 'edit_book_obj': edit_book_obj, 'error': '书名不能为空!'})
 
+
 # 作者列表
 def author_list(request):
     all_author = Author.objects.all()
@@ -256,7 +255,7 @@ def add_author(request):
 
 
 # 删除作者
-def delete_author(request,delete_id):
+def delete_author(request, delete_id):
     # delete_id = request.GET.get('id')
     Author.objects.get(id=delete_id).delete()  # 会自动删除关联记录
     return redirect(reverse('author_l'))
@@ -283,13 +282,13 @@ def edit_author(request):
 # CBV版 编辑作者 (class base view)
 class EditAuthor(View):
 
-    def get(self, request,edit_id):
+    def get(self, request, edit_id):
         # edit_id = request.GET.get('id')
         edit_author_obj = Author.objects.get(id=edit_id)
         book_list = Book.objects.all()
         return render(request, 'edit_author.html', {'book_list': book_list, 'author': edit_author_obj})
 
-    def post(self, request,edit_id):
+    def post(self, request, edit_id):
         new_author_name = request.POST.get('author_name')
         new_books = request.POST.getlist('books')
         # edit_author_id = request.POST.get('author_id')
